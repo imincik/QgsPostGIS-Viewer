@@ -28,12 +28,19 @@ import sys
 import getopt
 #import pdb
 
-from PyQt4.QtSql import *
-from PyQt4.QtGui import QAction, QMainWindow, QApplication, QMessageBox
-from PyQt4.QtCore import SIGNAL, Qt, QString
+try:
+	from PyQt4.QtSql import *
+	from PyQt4.QtGui import QAction, QMainWindow, QApplication, QMessageBox
+	from PyQt4.QtCore import SIGNAL, Qt, QString
 
-from qgis.core import *
-from qgis.gui import *
+	from qgis.core import *
+	from qgis.gui import *
+
+except ImportError:
+	print >> sys.stderr, 'E: Qt or QGIS not installed.'
+	print >> sys.stderr, 'E: Exiting ...'
+	sys.exit(1)
+
 
 qgis_prefix = "/usr"
 
@@ -92,7 +99,7 @@ def show_error(title, text):
 	QMessageBox.critical(None, title, text,
 	QMessageBox.Ok | QMessageBox.Default,
 	QMessageBox.NoButton)
-	print 'E: Error. Exiting ...'
+	print >> sys.stderr, 'E: Error. Exiting ...'
 	print __doc__
 	sys.exit(1)
 
