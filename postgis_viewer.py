@@ -53,6 +53,7 @@ class ViewerWnd(QMainWindow):
 
 		self.canvas = QgsMapCanvas()
 		self.canvas.setCanvasColor(Qt.white)
+		self.canvas.enableAntiAliasing(True)
 
 		QgsMapLayerRegistry.instance().addMapLayer(layer)
 
