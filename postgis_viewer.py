@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-Simple PostGIS layer viewer.
+Simple PostGIS viewer based on QGIS libs.
 Usage: postgis_viewer.py <options>
 	
 Options:
@@ -12,8 +12,8 @@ Options:
 	-s schema
 	-t table
 
-
-Using as PgAdmin plugin copy 'postgis_viewer.py' file on PATH and put following to 'plugins.ini':
+Using as PgAdmin plugin, copy 'postgis_viewer.py' file on PATH and put following 
+to 'plugins.ini' (/usr/share/pgadmin3/plugins.ini on Debian):
 
 	Title=View PostGIS layer
 	Command=postgis_viewer.py -h $$HOSTNAME -p $$PORT -U $$USERNAME -W $$PASSWORD -d $$DATABASE -s $$SCHEMA -t $$TABLE
@@ -22,6 +22,9 @@ Using as PgAdmin plugin copy 'postgis_viewer.py' file on PATH and put following 
 	ServerType=postgresql
 	Database=Yes
 	SetPassword=Yes
+
+Author: Ivan Mincik, ivan.mincik@gista.sk
+License: GNU General Public License v2.0
 """
 
 import sys
