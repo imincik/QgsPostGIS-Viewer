@@ -12,6 +12,9 @@ Options:
 	-s schema
 	-t table
 
+Prerequisities:
+	Qt, QGIS, libqt4-sql-psql
+
 Using as PgAdmin plugin, copy 'postgis_viewer.py' file on PATH and put following 
 to 'plugins.ini' (/usr/share/pgadmin3/plugins.ini on Debian):
 
