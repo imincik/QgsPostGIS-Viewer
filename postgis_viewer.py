@@ -141,6 +141,11 @@ def main(argv):
 			db_schema = a
 		elif o == '-t':
 			db_table = a
+	
+	if db_table == '':
+		print 'E: Table name is required'
+		print __doc__
+		sys.exit(1)
 
 	d = QSqlDatabase.addDatabase("QPSQL", "PgSQLDb")
 	d.setHostName(db_host)
