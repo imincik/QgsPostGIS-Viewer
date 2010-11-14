@@ -19,7 +19,7 @@ Using as PgAdmin plugin, copy 'postgis_viewer.py' file on PATH and put following
 to 'plugins.ini' (/usr/share/pgadmin3/plugins.ini on Debian):
 
 	Title=View PostGIS layer
-	Command=postgis_viewer.py -h $$HOSTNAME -p $$PORT -U $$USERNAME -W $$PASSWORD -d $$DATABASE -s $$SCHEMA -t $$TABLE
+	Command=postgis_viewer.py -h $$HOSTNAME -p $$PORT -U $$USERNAME -W $$PASSWORD -d $$DATABASE -s $$SCHEMA -t $$OBJECTNAME
 	Description=View PostGIS layer
 	Platform=unix
 	ServerType=postgresql
