@@ -111,11 +111,40 @@ def show_error(title, text):
 	sys.exit(1)
 
 
+def view_table(app, geometry_col):
+	
+	# QGIS libs init
+	QgsApplication.setPrefixPath(qgis_prefix, True)
+	QgsApplication.initQgis()
+
+	# QGIS connection
+	uri = QgsDataSourceURI()
+	uri.setConnection(db_host, db_port, db, db_user, db_pwd)
+	uri.setDataSource(db_schema, db_table, geometry_col)
+	layer = QgsVectorLayer(uri.uri(), db_table, "postgres")
+
+	# Open viewer
+	if layer.isValid():
+		print 'I: Opening layer %s.%s' % (layer.name(), geometry_col)
+		wnd = ViewerWnd(layer)
+		wnd.move(100,100)
+		wnd.resize(600, 400)
+		wnd.show()
+
+		retval = app.exec_()
+
+		# Exit
+		QgsApplication.exitQgis()
+		print 'I: Exiting ...'
+		sys.exit(retval)
+
+
 def main(argv):
 	print 'I: Starting viewer ...'
 	
 	app = QApplication(argv)
 	
+	global db_host, db_port, db_user, db_pwd, db, db_schema, db_table
 	db_host = ''
 	db_port = '5432'
 	db_user = ''
@@ -143,7 +172,7 @@ def main(argv):
 			db_table = a
 	
 	if db_table == '':
-		print 'E: Table name is required'
+		print >> sys.stderr, 'E: Table name is required'
 		print __doc__
 		sys.exit(1)
 
@@ -165,34 +194,11 @@ def main(argv):
 		
 		if query.next():
 			geometry_col = query.value(0).toString()
+			view_table(app, geometry_col)
 			
-			# QGIS libs init
-			QgsApplication.setPrefixPath(qgis_prefix, True)
-			QgsApplication.initQgis()
-
-			# QGIS connection
-			uri = QgsDataSourceURI()
-			uri.setConnection(db_host, db_port, db, db_user, db_pwd)
-			uri.setDataSource(db_schema, db_table, geometry_col)
-			layer = QgsVectorLayer(uri.uri(), db_table, "postgres")
-
-			# Open viewer
-			if layer.isValid():
-				print 'I: Opening layer %s.%s' % (layer.name(), geometry_col)
-				wnd = ViewerWnd(layer)
-				wnd.move(100,100)
-				wnd.resize(600, 400)
-				wnd.show()
-
-				retval = app.exec_()
-
-				# Exit
-				QgsApplication.exitQgis()
-				print 'I: Exiting ...'
-				sys.exit(retval)
 		else:
 			show_error("Error when opening layer", 
-					"Layer doesn't exist or doesn't contain geometry columns.")
+					"Layer '%s.%s' doesn't exist or it doesn't contain geometry column." % (db_schema, db_table))
 	else:
 		show_error("Connection error", "Error when connecting to database.")
 
