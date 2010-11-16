@@ -1,0 +1,29 @@
+Simple PostGIS viewer based on QGIS libs.
+Usage: postgis_viewer.py <options>
+
+Options:
+        -h host
+        -p port
+        -U user
+        -W password
+        -d database
+        -s schema
+        -t table
+
+Prerequisities:
+        Qt, QGIS, libqt4-sql-psql
+
+Using as PgAdmin plugin, copy 'postgis_viewer.py' file on PATH and put following
+to 'plugins.ini' (/usr/share/pgadmin3/plugins.ini on Debian):
+
+        Title=View PostGIS layer
+        Command=postgis_viewer.py -h $$HOSTNAME -p $$PORT -U $$USERNAME -W $$PASSWORD -d $$DATABASE -s $$SCHEMA -t $$OBJECTNAME
+        Description=View PostGIS layer
+        Platform=unix
+        ServerType=postgresql
+        Database=Yes
+        SetPassword=Yes
+
+Author: Ivan Mincik, ivan.mincik@gista.sk
+License: GNU General Public License v2.0
+
