@@ -54,6 +54,8 @@ class ViewerWnd(QMainWindow):
 	def __init__(self, layer):
 		QMainWindow.__init__(self)
 
+		self.setWindowTitle('PostGIS Viewer - [%s]' % (layer.source()))
+
 		self.canvas = QgsMapCanvas()
 		self.canvas.setCanvasColor(Qt.white)
 		self.canvas.enableAntiAliasing(True)
