@@ -36,8 +36,8 @@ import getopt
 
 try:
 	from PyQt4.QtSql import *
-	from PyQt4.QtGui import QAction, QMainWindow, QApplication, QMessageBox
-	from PyQt4.QtCore import SIGNAL, Qt, QString
+	from PyQt4.QtGui import QAction, QMainWindow, QApplication, QMessageBox, QDockWidget, QListWidget
+	from PyQt4.QtCore import SIGNAL, Qt, QString, QStringList, QVariant
 
 	from qgis.core import *
 	from qgis.gui import *
@@ -51,10 +51,10 @@ except ImportError:
 qgis_prefix = "/usr"
 
 class ViewerWnd(QMainWindow):
-	def __init__(self, layer):
+	def __init__(self, layer, prop):
 		QMainWindow.__init__(self)
 
-		self.setWindowTitle('PostGIS Viewer - [%s]' % (layer.source()))
+		self.setWindowTitle('PostGIS Viewer - %s' % (layer.name()))
 
 		self.canvas = QgsMapCanvas()
 		self.canvas.setCanvasColor(Qt.white)
@@ -94,6 +94,19 @@ class ViewerWnd(QMainWindow):
 
 		self.pan()
 
+		dock = QDockWidget(self.tr('Layer Properties'), self)
+		dock.setAllowedAreas(Qt.BottomDockWidgetArea)
+		self.customerList = QListWidget(dock)
+		self.customerList.addItems(QStringList()
+			<< "Layer: %s" % layer.name()
+			<< "Source: %s" % layer.source()
+			<< "Geometry: %s" % prop['geom_type']
+			<< "Extent: %s" % layer.extent().toString()
+			<< "PostGIS: %s" % prop['postgis_version']
+			)
+		dock.setWidget(self.customerList)
+		self.addDockWidget(Qt.BottomDockWidgetArea, dock)
+
 	def zoomIn(self):
 		self.canvas.setMapTool(self.toolZoomIn)
 
@@ -102,6 +115,61 @@ class ViewerWnd(QMainWindow):
 
 	def pan(self):
 		self.canvas.setMapTool(self.toolPan)
+
+
+class PgisLayer:
+	def __init__(self, db_host, db_port, db, db_user, db_pwd, db_schema, db_table):
+		self.db = QSqlDatabase.addDatabase("QPSQL", "PgisLayer")
+		self.db.setHostName(db_host)
+		self.db.setPort(int(db_port))
+		self.db.setDatabaseName(db)
+		self.db.setUserName(db_user)
+		self.db.setPassword(db_pwd)
+		
+		self.db_schema = db_schema
+		self.db_table = db_table
+
+		self.db.open()
+
+	def _exec_sql(self, sql):
+		cur = QSqlQuery(self.db)
+		cur.exec_(sql)
+		return cur
+
+	def connection_success(self):
+		if self.db.open():
+			return True
+		else:
+			return False
+	
+	def postgis_version(self):
+		que = self._exec_sql('SELECT postgis_full_version()')
+		que.next()
+		return que.value(0)
+	
+	def get_geom_column(self):
+		que = self._exec_sql("SELECT column_name FROM information_schema.columns \
+			WHERE table_schema = '%s' AND \
+			table_name = '%s' AND \
+			udt_name = 'geometry' LIMIT 1" % (self.db_schema, self.db_table))
+		
+		if que.next():
+			return que.value(0)
+	
+	def get_geom_type(self):
+		que = self._exec_sql("SELECT type FROM geometry_columns \
+			WHERE f_table_schema = '%s' AND \
+			f_table_name = '%s'" % (self.db_schema, self.db_table))
+		
+		if que.next():
+			return que.value(0)
+		else:
+			que = self._exec_sql("SELECT GeometryType(the_geom) FROM %s.%s LIMIT 1" % (self.db_schema, self.db_table))
+			if que.next():
+				return que.value(0)
+			else:
+				return QVariant('undefined')
+
 
 
 def show_error(title, text):
@@ -113,40 +181,12 @@ def show_error(title, text):
 	sys.exit(1)
 
 
-def view_table(app, geometry_col):
-	
-	# QGIS libs init
-	QgsApplication.setPrefixPath(qgis_prefix, True)
-	QgsApplication.initQgis()
-
-	# QGIS connection
-	uri = QgsDataSourceURI()
-	uri.setConnection(db_host, db_port, db, db_user, db_pwd)
-	uri.setDataSource(db_schema, db_table, geometry_col)
-	layer = QgsVectorLayer(uri.uri(), db_table, "postgres")
-
-	# Open viewer
-	if layer.isValid():
-		print 'I: Opening layer %s.%s' % (layer.name(), geometry_col)
-		wnd = ViewerWnd(layer)
-		wnd.move(100,100)
-		wnd.resize(600, 400)
-		wnd.show()
-
-		retval = app.exec_()
-
-		# Exit
-		QgsApplication.exitQgis()
-		print 'I: Exiting ...'
-		sys.exit(retval)
-
 
 def main(argv):
 	print 'I: Starting viewer ...'
 	
 	app = QApplication(argv)
 	
-	global db_host, db_port, db_user, db_pwd, db, db_schema, db_table
 	db_host = ''
 	db_port = '5432'
 	db_user = ''
@@ -154,7 +194,6 @@ def main(argv):
 	db = ''
 	db_schema = 'public'
 	db_table =  ''
-
 
 	opts, args = getopt.getopt(sys.argv[1:], 'h:p:U:W:d:s:t:g:', [])
 	for o, a in opts:
@@ -178,26 +217,42 @@ def main(argv):
 		print __doc__
 		sys.exit(1)
 
-	d = QSqlDatabase.addDatabase("QPSQL", "PgSQLDb")
-	d.setHostName(db_host)
-	d.setPort(int(db_port))
-	d.setDatabaseName(db)
-	d.setUserName(db_user)
-	d.setPassword(db_pwd)
+	lay = PgisLayer(db_host, db_port, db, db_user, db_pwd, db_schema, db_table)
+	
+	if lay.connection_success():
+		geometry_col = lay.get_geom_column().toString()
+		
+		if geometry_col:
+			# QGIS libs init
+			QgsApplication.setPrefixPath(qgis_prefix, True)
+			QgsApplication.initQgis()
 
-	if d.open():
-		print 'I: Database connection was succesfull'
-		
-		query = QSqlQuery(d)
-		query.exec_("SELECT column_name FROM information_schema.columns \
-				WHERE table_schema = '%s' AND \
-				table_name = '%s' AND \
-				udt_name = 'geometry' LIMIT 1" % (db_schema, db_table))
-		
-		if query.next():
-			geometry_col = query.value(0).toString()
-			view_table(app, geometry_col)
-			
+			# QGIS connection
+			uri = QgsDataSourceURI()
+			uri.setConnection(db_host, db_port, db, db_user, db_pwd)
+			uri.setDataSource(db_schema, db_table, geometry_col)
+			layer = QgsVectorLayer(uri.uri(), db_table, 'postgres')
+
+			# Open viewer
+			if layer.isValid():
+				# collect some layer properties
+				layer_prop = {}
+				layer_prop['postgis_version'] = lay.postgis_version().toString()
+				layer_prop['geom_type'] = lay.get_geom_type().toString()
+
+				print 'I: Opening layer %s.%s' % (layer.name(), geometry_col)
+				wnd = ViewerWnd(layer, layer_prop)
+				wnd.move(100, 100)
+				wnd.resize(600, 400)
+				wnd.show()
+
+				retval = app.exec_()
+
+				# Exit
+				QgsApplication.exitQgis()
+				print 'I: Exiting ...'
+				sys.exit(retval)
+
 		else:
 			show_error("Error when opening layer", 
 					"Layer '%s.%s' doesn't exist or it doesn't contain geometry column." % (db_schema, db_table))
