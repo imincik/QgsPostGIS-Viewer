@@ -93,18 +93,18 @@ class ViewerWnd(QMainWindow):
 
 		self.pan()
 
-		dock = QDockWidget(self.tr('Layer Properties'), self)
-		dock.setAllowedAreas(Qt.BottomDockWidgetArea)
-		self.customerList = QListWidget(dock)
-		self.customerList.addItems(QStringList()
+		dock_layer_prop = QDockWidget(self.tr('Layer Properties'), self)
+		dock_layer_prop.setAllowedAreas(Qt.BottomDockWidgetArea)
+		self.layer_prop = QListWidget(dock_layer_prop)
+		self.layer_prop.addItems(QStringList()
 			<< "Layer: %s" % layer.name()
 			<< "Source: %s" % layer.source()
 			<< "Geometry: %s" % prop['geom_type']
 			<< "Extent: %s" % layer.extent().toString()
 			<< "PostGIS: %s" % prop['postgis_version']
 			)
-		dock.setWidget(self.customerList)
-		self.addDockWidget(Qt.BottomDockWidgetArea, dock)
+		dock_layer_prop.setWidget(self.layer_prop)
+		self.addDockWidget(Qt.BottomDockWidgetArea, dock_layer_prop)
 
 	def zoomIn(self):
 		self.canvas.setMapTool(self.toolZoomIn)
