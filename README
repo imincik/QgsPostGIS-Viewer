@@ -22,6 +22,7 @@ to 'plugins.ini' (/usr/share/pgadmin3/plugins.ini on Debian):
         Platform=unix
         ServerType=postgresql
         Database=Yes
+        SetPassword=Yes
 
 Authors:
 	Copyright (c) 2010 by Ivan Mincik, ivan.mincik@gista.sk
