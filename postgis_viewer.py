@@ -134,6 +134,7 @@ class ViewerWnd( QMainWindow ):
 
 		self.canvas = QgsMapCanvas()
 		self.canvas.setCanvasColor( Qt.white )
+		self.canvas.useImageToRender( True )
 		self.canvas.enableAntiAliasing( True )
 		self.setCentralWidget( self.canvas )
 
