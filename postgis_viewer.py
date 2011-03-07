@@ -563,7 +563,7 @@ class Legend( QTreeWidget ):
 		if legendLayer.isVect == True:
 			geom = legendLayer.canvasLayer.layer().geometryType() # QGis Geometry
 			for i in self.layers:
-				if i.layer().getLayerID() == legendLayer.layerId:
+				if i.layer().id() == legendLayer.layerId:
 					if geom == 1: # Line
 						color = QColorDialog.getColor( i.layer().renderer().symbols()[ 0 ].color(), self.pyQGisApp )
 					else:
