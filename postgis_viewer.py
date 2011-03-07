@@ -59,10 +59,10 @@ qgis_prefix = ""
 imgs_dir = ""
 if os.name == "nt": # Windows
 	qgis_prefix = "C:/OSGeo4W/apps/qgis/"
-	imgs_dir = "postgis_viewer_imgs/"
+	imgs_dir = "images/"
 else: # Linux
 	qgis_prefix = "/usr"
-	imgs_dir = "/usr/bin/postgis_viewer_imgs/"
+	imgs_dir = "images/"
 
 class SingletonApp(QApplication):
 	
