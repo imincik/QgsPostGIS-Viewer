@@ -71,8 +71,7 @@ class SingletonApp(QApplication):
 	def __init__(self, argv, application_id=None):
 		QApplication.__init__(self, argv)
 		
-		self.socket_filename = unicode(os.path.expanduser("~/.ipc_%s" 
-														  % self.generate_ipc_id()) )
+		self.socket_filename = unicode(os.path.expanduser("~/.ipc_%s" % self.generate_ipc_id()) )
 		self.shared_mem = QSharedMemory()
 		self.shared_mem.setKey(self.socket_filename)
 
