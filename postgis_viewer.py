@@ -389,7 +389,7 @@ class Legend( QTreeWidget ):
 		# QTreeWidget properties
 		self.setSortingEnabled( False )
 		self.setDragEnabled( False )
-		self.setAutoScroll( True )
+		self.setAutoScroll( False )
 		self.setHeaderHidden( True )
 		self.setRootIsDecorated( True )
 		self.setContextMenuPolicy( Qt.CustomContextMenu )
